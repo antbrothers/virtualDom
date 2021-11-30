@@ -1,13 +1,15 @@
 import "./styles.css";
 
 document.getElementById("app").innerHTML = `
-<h1>Hello Vanilla!</h1>
+<h1>Hello !</h1>
 <div>
-  We use the same configuration as Parcel to bundle this sandbox, you can find more
-  info about Parcel 
-  <text class="pp">1</text>
-  <text>2</text>
-  <a href="https://parceljs.org" target="_blank" rel="noopener noreferrer">here</a>.
+  【一】</br>   
+    1.1. DOM 转虚拟dom </br>
+    1.2. 虚拟dom 还原DOM </br>
+    1.3. 监听dom结构变化 </br>
+  【二】</br>
+    2.1 Virtual Dom 对比 DOM </br>
+    2.2 绘制 && 重绘
 </div>
 `;
 const content = document.body;
@@ -125,3 +127,15 @@ const observer = new MutationObserver((mutationList) => {
   console.log(mutationList);
 });
 observer.observe(document.documentElement, options);
+
+const onMutationChange = (mutationList) => {
+  const getFlowId = (node) => {
+    if (node) {
+      if (!node.__flow) node.__flow = { id: uuid() };
+      return node.__flow.id;
+    }
+  };
+  mutationList.forEach((mutation) => {
+    const { target, type, attributeName } = mutation
+  })
+};
