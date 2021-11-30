@@ -5,17 +5,17 @@ document.getElementById("app").innerHTML = `
 <div>
   We use the same configuration as Parcel to bundle this sandbox, you can find more
   info about Parcel 
-  <text>1</text>
+  <text class="pp">1</text>
   <text>2</text>
   <a href="https://parceljs.org" target="_blank" rel="noopener noreferrer">here</a>.
 </div>
 `;
-const content = document.documentElement.outerHTML;
+const content = document.body;
 
-createVirtualDom(content, false);
-
-const SVG_NAMESPACE = "http://www.w3.org/svg";
+const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const XML_NAMESPACES = ["xmlns", "xmlns:svg", "xmlns:xlink"];
+
+// 把DOM 转虚拟dom
 function createVirtualDom(element, isSVG = false) {
   switch (element.nodeType) {
     case Node.TEXT_NODE:
@@ -47,7 +47,7 @@ function createVirtualElement(element, isSVG = false) {
   const { attr, namespace } = getNodeAttributes(element, isSVG);
   const vElement = {
     tagName,
-    type: "VirtualElment",
+    type: "VirtualElement",
     children,
     attributes: attr,
     namespace
@@ -59,13 +59,14 @@ function createVirtualElement(element, isSVG = false) {
 }
 
 function getNodeChildren(element, isSVG = false) {
-  const childNode = element.childNode ? [...element.childNode] : [];
+  const childNodes = element.childNodes ? [...element.childNodes] : [];
   const children = [];
-  childNode.forEach((cnode) => {
+  childNodes.forEach((cnode) => {
     children.push(createVirtualDom(cnode, isSVG));
   });
   return children.filter((c) => !!c);
 }
+
 function getNodeAttributes(element, isSVG = false) {
   const attributes = element.attributes ? [...element.attributes] : [];
   const attr = {};
@@ -80,3 +81,47 @@ function getNodeAttributes(element, isSVG = false) {
   });
   return { attr, namespace };
 }
+let _res = createVirtualDom(content, false);
+console.log(_res);
+
+let _r = createElement(_res);
+console.log(_r);
+// 把虚拟dom 转 DOM
+function createElement(vdom, nodeFilter = () => true) {
+  let node;
+  if (vdom.type === "VirtualText") {
+    node = document.createTextNode(vdom.text);
+  } else {
+    node =
+      typeof vdom.namespace === "undefined"
+        ? document.createElement(vdom.tagName)
+        : document.createElementNS(vdom.namespace, vdom.tagName);
+    for (let name in vdom.attributes) {
+      node.setAttribute(name, vdom.attributes[name]);
+    }
+    vdom.children.forEach((cnode) => {
+      const childNode = createElement(cnode, nodeFilter);
+      if (childNode && nodeFilter(childNode)) {
+        node.appendChild(childNode);
+      }
+    });
+  }
+  if (vdom.__flow) {
+    node.__flow = vdom.__flow;
+  }
+  return node;
+}
+
+// 监听DOM结构变化
+const options = {
+  childList: true,
+  subtree: true,
+  attributes: true,
+  attributeOldValue: true,
+  characterData: true,
+  characterDataOldValue: true
+};
+const observer = new MutationObserver((mutationList) => {
+  console.log(mutationList);
+});
+observer.observe(document.documentElement, options);
